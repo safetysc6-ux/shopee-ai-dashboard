@@ -5,8 +5,8 @@ export default async function handler(req, res) {
   if (!cookie) return res.status(400).json({ error: 'Missing Shopee Cookie' });
 
   try {
-    // URL สำหรับดึงข้อมูลภาพรวม (Overview)
-    const shopeeApiUrl = '[https://affiliate.shopee.co.th/api/v3/report/performance/overview](https://affiliate.shopee.co.th/api/v3/report/performance/overview)';
+    // แก้ไข URL ให้เป็นข้อความปกติ (ลบวงเล็บออกแล้ว)
+    const shopeeApiUrl = 'https://affiliate.shopee.co.th/api/v3/report/performance/overview';
 
     const shopeeRes = await fetch(shopeeApiUrl, {
       method: 'GET',
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         'Cookie': cookie,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'application/json',
-        'Referer': '[https://affiliate.shopee.co.th/](https://affiliate.shopee.co.th/)'
+        'Referer': 'https://affiliate.shopee.co.th/'
       }
     });
 
