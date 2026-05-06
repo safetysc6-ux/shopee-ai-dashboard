@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // URL สำหรับดึงข้อมูลภาพรวม (Overview) - ลบวงเล็บแปลกปลอมออกแล้ว 100%
+    // URL สำหรับดึงข้อมูลภาพรวม (Overview) - แก้ไขเอา Auto-link ออกแล้ว
     const shopeeApiUrl = '[https://affiliate.shopee.co.th/api/v3/report/performance/overview](https://affiliate.shopee.co.th/api/v3/report/performance/overview)';
 
     const shopeeRes = await fetch(shopeeApiUrl, {
