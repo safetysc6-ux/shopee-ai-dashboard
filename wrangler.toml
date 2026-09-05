@@ -1,0 +1,8 @@
+name = "shopee-trend-hunter"
+main = "worker.js"
+compatibility_date = "2026-09-05"
+
+[[d1_databases]]
+binding = "TREND_DB"
+database_name = "shopee-trend-hunter-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
