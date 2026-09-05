@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Shopee Trend Hunter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{background:#f8fafc}.chip{border:1px solid #e2e8f0}.card{box-shadow:0 8px 24px rgba(15,23,42,.06)}
+  </style>
+</head>
+<body class="text-slate-900">
+  <div class="max-w-7xl mx-auto p-4 md:p-6">
+    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+      <div>
+        <p class="text-sm font-semibold text-orange-600">Product Discovery</p>
+        <h1 class="text-3xl font-black">Shopee Trend Hunter</h1>
+        <p class="text-sm text-slate-500 mt-1">หา “สินค้าต้นน้ำ” จากความเร็วของยอด ไม่ใช่แค่สินค้าขายดี</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <label class="px-4 py-2 rounded-xl bg-white border cursor-pointer text-sm font-semibold">นำเข้า CSV<input id="csv" type="file" accept=".csv" class="hidden"></label>
+        <button id="addBtn" class="px-4 py-2 rounded-xl bg-orange-600 text-white text-sm font-bold">+ เพิ่มสินค้า</button>
+        <button id="clearBtn" class="px-4 py-2 rounded-xl bg-white border text-sm">ล้างข้อมูล</button>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div class="bg-white rounded-2xl p-4 card"><p class="text-xs text-slate-500">สินค้าที่กำลังติดเรดาร์</p><p id="kpiRadar" class="text-2xl font-black mt-1">0</p></div>
+      <div class="bg-white rounded-2xl p-4 card"><p class="text-xs text-slate-500">🔥 ทำทันที</p><p id="kpiHot" class="text-2xl font-black mt-1">0</p></div>
+      <div class="bg-white rounded-2xl p-4 card"><p class="text-xs text-slate-500">👀 จับตา</p><p id="kpiWatch" class="text-2xl font-black mt-1">0</p></div>
+      <div class="bg-white rounded-2xl p-4 card"><p class="text-xs text-slate-500">เข้า Content Queue</p><p id="kpiQueue" class="text-2xl font-black mt-1">0</p></div>
+    </section>
+
+    <section class="bg-white rounded-2xl p-4 card mb-4">
+      <div class="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+        <div class="flex gap-2 flex-wrap">
+          <button data-filter="all" class="filter px-3 py-2 rounded-xl bg-slate-900 text-white text-sm">ทั้งหมด</button>
+          <button data-filter="hot" class="filter px-3 py-2 rounded-xl chip text-sm">🔥 ทำทันที</button>
+          <button data-filter="watch" class="filter px-3 py-2 rounded-xl chip text-sm">👀 จับตา</button>
+          <button data-filter="queue" class="filter px-3 py-2 rounded-xl chip text-sm">🎬 Queue</button>
+        </div>
+        <div class="flex gap-2">
+          <input id="search" placeholder="ค้นหาสินค้า/หมวด..." class="w-full lg:w-72 border rounded-xl px-3 py-2 text-sm">
+          <select id="sort" class="border rounded-xl px-3 py-2 text-sm"><option value="score">Trend Score</option><option value="growth">Growth</option><option value="sales">ยอดวันนี้</option><option value="competition">คู่แข่งน้อย</option></select>
+        </div>
+      </div>
+    </section>
+
+    <div id="empty" class="bg-white rounded-2xl p-10 text-center card">
+      <div class="text-5xl mb-3">📡</div>
+      <h2 class="font-black text-xl">ยังไม่มีข้อมูลสินค้า</h2>
+      <p class="text-slate-500 text-sm mt-2">เพิ่มสินค้าเองหรือนำเข้า CSV เพื่อให้ระบบคำนวณ Trend Score และจัดลำดับ “ของที่ควรรีบทำคลิป”</p>
+      <p class="text-xs text-slate-400 mt-4">CSV ที่รองรับ: name, category, price, sales_today, sales_prev, reviews, videos, commission, url</p>
+    </div>
+
+    <section id="grid" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4"></section>
+  </div>
+
+  <dialog id="modal" class="rounded-2xl p-0 w-[94%] max-w-xl backdrop:bg-black/30">
+    <form id="form" class="p-5 bg-white rounded-2xl">
+      <div class="flex justify-between items-center mb-4"><h3 class="font-black text-xl">เพิ่มสินค้าเข้าเรดาร์</h3><button type="button" id="closeBtn" class="text-2xl">×</button></div>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="col-span-2 text-sm">ชื่อสินค้า<input required name="name" class="mt-1 w-full border rounded-xl px-3 py-2"></label>
+        <label class="text-sm">หมวด<input name="category" class="mt-1 w-full border rounded-xl px-3 py-2"></label>
+        <label class="text-sm">ราคา<input name="price" type="number" step="0.01" class="mt-1 w-full border rounded-xl px-3 py-2"></label>
+        <label class="text-sm">ยอดวันนี้<input name="sales_today" type="number" required class="mt-1 w-full border rounded-xl px-3 py-2"></label>
+        <label class="text-sm">ยอดวันก่อน<input name="sales_prev" type="number" required class="mt-1 w-full border rounded-xl px-3 py-2"></label>
+        <label class="text-sm">รีวิวทั้งหมด<input name="reviews" type="number" class="mt-1 w-full border rounded-xl px-3 py-2"></label>
+        <label class="text-sm">คลิปคู่แข่งโดยประมาณ<input name="videos" type="number" class="mt-1 w-full border rounded-xl px-3 py-2"></label>
+        <label class="text-sm">คอมโดยประมาณ %<input name="commission" type="number" step="0.1" class="mt-1 w-full border rounded-xl px-3 py-2"></label>
+        <label class="col-span-2 text-sm">ลิงก์สินค้า<input name="url" class="mt-1 w-full border rounded-xl px-3 py-2"></label>
+      </div>
+      <button class="mt-5 w-full bg-orange-600 text-white font-bold rounded-xl py-3">บันทึกและวิเคราะห์</button>
+    </form>
+  </dialog>
+
+<script>
+const KEY='trend-hunter-v1'; let rows=JSON.parse(localStorage.getItem(KEY)||'[]'); let active='all';
+const n=v=>Number(v||0); const esc=s=>String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[m]));
+function calc(x){
+  const today=n(x.sales_today), prev=n(x.sales_prev), reviews=n(x.reviews), videos=n(x.videos), commission=n(x.commission);
+  const growth=prev>0?((today-prev)/prev)*100:(today>0?100:0);
+  const velocity=Math.min(35,Math.max(0,growth)*.35);
+  const acceleration=Math.min(25,Math.max(0,today-prev)/Math.max(1,prev)*12.5);
+  const competition=Math.max(0,20-Math.min(20,videos*.35));
+  const money=Math.min(10,commission*.8);
+  const freshness=Math.max(0,10-Math.log10(Math.max(1,reviews))*2.5);
+  const score=Math.round(Math.min(100,velocity+acceleration+competition+money+freshness));
+  const decision=score>=70?'hot':score>=45?'watch':'skip';
+  return {...x,growth,score,decision};
+}
+function contentIdea(x){const t=(x.category+' '+x.name).toLowerCase(); if(/ครัว|ชั้น|ซิงก์|rack|kitchen/.test(t))return'Problem → จัดพื้นที่ → ติดตั้ง → Before/After'; if(/พื้น|ไม้|กระเบื้อง|หญ้า/.test(t))return'พื้นเก่า → เตรียมผิว → ติดตั้งทีละชิ้น → Final reveal'; return'Hook ปัญหา → โชว์สินค้า → ทดลองใช้จริง → ผลลัพธ์ → CTA';}
+function save(){localStorage.setItem(KEY,JSON.stringify(rows)); render();}
+function render(){
+  const all=rows.map(calc); document.querySelector('#kpiRadar').textContent=all.length; document.querySelector('#kpiHot').textContent=all.filter(x=>x.decision==='hot').length; document.querySelector('#kpiWatch').textContent=all.filter(x=>x.decision==='watch').length; document.querySelector('#kpiQueue').textContent=all.filter(x=>x.queue).length;
+  let q=document.querySelector('#search').value.toLowerCase(); let list=all.filter(x=>(x.name+' '+x.category).toLowerCase().includes(q));
+  if(active==='hot')list=list.filter(x=>x.decision==='hot'); if(active==='watch')list=list.filter(x=>x.decision==='watch'); if(active==='queue')list=list.filter(x=>x.queue);
+  const sort=document.querySelector('#sort').value; list.sort((a,b)=>sort==='growth'?b.growth-a.growth:sort==='sales'?n(b.sales_today)-n(a.sales_today):sort==='competition'?n(a.videos)-n(b.videos):b.score-a.score);
+  document.querySelector('#empty').classList.toggle('hidden',rows.length>0); const grid=document.querySelector('#grid'); grid.innerHTML='';
+  list.forEach(x=>{const d=document.createElement('article'); const tag=x.decision==='hot'?'🔥 ทำทันที':x.decision==='watch'?'👀 จับตา':'❄️ ยังไม่เด่น'; const growth=(x.growth>=0?'+':'')+x.growth.toFixed(0)+'%'; d.className='bg-white rounded-2xl p-4 card border border-slate-100'; d.innerHTML=`
+    <div class="flex justify-between gap-3"><div><span class="text-xs px-2 py-1 rounded-full bg-slate-100">${esc(x.category||'ไม่ระบุหมวด')}</span><h3 class="font-black mt-2 leading-snug">${esc(x.name)}</h3></div><div class="text-center"><div class="w-16 h-16 rounded-full border-4 border-orange-100 flex items-center justify-center text-xl font-black text-orange-600">${x.score}</div><p class="text-[10px] text-slate-400 mt-1">TREND</p></div></div>
+    <div class="grid grid-cols-3 gap-2 mt-4 text-center"><div class="bg-slate-50 rounded-xl p-2"><p class="text-[10px] text-slate-400">Growth</p><p class="font-black ${x.growth>0?'text-emerald-600':'text-slate-600'}">${growth}</p></div><div class="bg-slate-50 rounded-xl p-2"><p class="text-[10px] text-slate-400">ยอดวันนี้</p><p class="font-black">${n(x.sales_today).toLocaleString()}</p></div><div class="bg-slate-50 rounded-xl p-2"><p class="text-[10px] text-slate-400">คลิปคู่แข่ง</p><p class="font-black">${n(x.videos).toLocaleString()}</p></div></div>
+    <div class="mt-3 flex justify-between items-center"><span class="font-bold text-sm">${tag}</span><span class="text-xs text-slate-400">คอม ${n(x.commission)}%</span></div>
+    <div class="mt-3 bg-orange-50 rounded-xl p-3"><p class="text-[10px] uppercase text-orange-500 font-bold">Content angle</p><p class="text-sm mt-1">${esc(contentIdea(x))}</p></div>
+    <div class="flex gap-2 mt-3"><button class="queue flex-1 rounded-xl py-2 text-sm font-bold ${x.queue?'bg-emerald-100 text-emerald-700':'bg-slate-900 text-white'}" data-id="${x.id}">${x.queue?'✓ อยู่ใน Queue':'🎬 ทำคลิป'}</button>${x.url?`<a target="_blank" href="${esc(x.url)}" class="px-3 py-2 border rounded-xl text-sm">เปิดสินค้า</a>`:''}<button class="del px-3 py-2 border rounded-xl text-sm" data-id="${x.id}">ลบ</button></div>`; grid.appendChild(d); });
+  document.querySelectorAll('.queue').forEach(b=>b.onclick=()=>{const r=rows.find(x=>x.id===b.dataset.id); r.queue=!r.queue; save();}); document.querySelectorAll('.del').forEach(b=>b.onclick=()=>{rows=rows.filter(x=>x.id!==b.dataset.id); save();});
+}
+function parseCSV(text){const lines=text.trim().split(/\r?\n/); if(lines.length<2)return[]; const h=lines[0].split(',').map(s=>s.trim()); return lines.slice(1).map(line=>{const v=line.split(','); const o={id:crypto.randomUUID(),queue:false}; h.forEach((k,i)=>o[k]=(v[i]||'').trim()); return o;});}
+document.querySelector('#addBtn').onclick=()=>modal.showModal(); document.querySelector('#closeBtn').onclick=()=>modal.close();
+document.querySelector('#form').onsubmit=e=>{e.preventDefault(); const o=Object.fromEntries(new FormData(e.target)); rows.unshift({id:crypto.randomUUID(),queue:false,...o}); e.target.reset(); modal.close(); save();};
+document.querySelector('#csv').onchange=async e=>{const f=e.target.files[0]; if(!f)return; rows=[...parseCSV(await f.text()),...rows]; save(); e.target.value='';};
+document.querySelector('#clearBtn').onclick=()=>{if(confirm('ล้างข้อมูล Trend Hunter ทั้งหมด?')){rows=[];save();}};
+document.querySelector('#search').oninput=render; document.querySelector('#sort').onchange=render;
+document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{active=b.dataset.filter; document.querySelectorAll('.filter').forEach(x=>x.className='filter px-3 py-2 rounded-xl chip text-sm'); b.className='filter px-3 py-2 rounded-xl bg-slate-900 text-white text-sm'; render();});
+render();
+</script>
+</body></html>
