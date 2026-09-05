@@ -1,0 +1,12 @@
+{
+  "name": "shopee-trend-hunter",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "d1:migrate": "wrangler d1 execute shopee-trend-hunter-db --file=schema.sql --remote"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
